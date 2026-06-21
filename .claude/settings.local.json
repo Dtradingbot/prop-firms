@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd \"C:\\\\Users\\\\Welcome\\\\Desktop\\\\popfram\\\\backend\" ; Start-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -RedirectStandardOutput \"$env:TEMP\\\\backend.log\" -RedirectStandardError \"$env:TEMP\\\\backend-err.log\"; Start-Sleep -Seconds 5; Get-Content \"$env:TEMP\\\\backend.log\",\"$env:TEMP\\\\backend-err.log\" -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

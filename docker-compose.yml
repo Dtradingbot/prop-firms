@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: propfirmhub
+      POSTGRES_PASSWORD: propfirmhub_pass
+      POSTGRES_DB: propfirmhub
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '4000:4000'
+    environment:
+      DATABASE_URL: postgresql://propfirmhub:propfirmhub_pass@postgres:5432/propfirmhub
+      JWT_SECRET: change-me-in-production-use-long-random-string
+      JWT_REFRESH_SECRET: change-me-refresh-secret
+      NODE_ENV: production
+      PORT: 4000
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      - postgres
+    volumes:
+      - uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  uploads:

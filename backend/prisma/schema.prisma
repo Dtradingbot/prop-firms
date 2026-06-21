@@ -1,0 +1,301 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  EDITOR
+  SUPER_ADMIN
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EvaluationType {
+  ONE_STEP
+  TWO_STEP
+  THREE_STEP
+  INSTANT_FUNDING
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  role          Role      @default(USER)
+  avatar        String?
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  reviews       Review[]
+  clicks        Click[]
+}
+
+model PropFirm {
+  id               String          @id @default(cuid())
+  slug             String          @unique
+  name             String
+  logo             String?
+  description      String?
+  shortDescription String?
+  websiteUrl       String
+  affiliateUrl     String?
+  rating           Float           @default(0)
+  trustScore       Float           @default(0)
+  reviewCount      Int             @default(0)
+  viewCount        Int             @default(0)
+  clickCount       Int             @default(0)
+  isFeatured       Boolean         @default(false)
+  isTrending       Boolean         @default(false)
+  isVerified       Boolean         @default(false)
+  isActive         Boolean         @default(true)
+  country          String?
+  founded          String?
+  maxFunding       Float?
+  minFunding       Float?
+  profitSplit      Float?
+  maxProfitSplit   Float?
+  maxDrawdown      Float?
+  dailyDrawdown    Float?
+  evaluationType   EvaluationType?
+  instantFunding   Boolean         @default(false)
+  payoutFrequency  String?
+  scalingPlan      Boolean         @default(false)
+  metaTitle        String?
+  metaDescription  String?
+  keywords         String?
+  canonicalUrl     String?
+  ogImage          String?
+  schemaMarkup     Json?
+  ratingOverride   Float?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  brokerId         String?
+  broker           Broker?         @relation(fields: [brokerId], references: [id])
+  platforms        PropFirmPlatform[]
+  programs         FundingProgram[]
+  reviews          Review[]
+  offers           Offer[]
+  clicks           Click[]
+  faqs             FAQ[]
+  rules            TradingRule[]
+  analytics        Analytics[]
+}
+
+model Broker {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  name        String
+  logo        String?
+  description String?
+  websiteUrl  String
+  regulation  String?
+  rating      Float      @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  firms       PropFirm[]
+}
+
+model Platform {
+  id        String             @id @default(cuid())
+  name      String             @unique
+  slug      String             @unique
+  logo      String?
+  firms     PropFirmPlatform[]
+}
+
+model PropFirmPlatform {
+  firmId     String
+  platformId String
+  firm       PropFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  platform   Platform @relation(fields: [platformId], references: [id])
+  @@id([firmId, platformId])
+}
+
+model FundingProgram {
+  id              String   @id @default(cuid())
+  firmId          String
+  firm            PropFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  name            String
+  accountSize     Float
+  price           Float
+  profitSplit     Float
+  maxDrawdown     Float
+  dailyDrawdown   Float?
+  profitTarget    Float?
+  minTradingDays  Int?
+  maxTradingDays  Int?
+  refundable      Boolean  @default(false)
+  evaluationType  EvaluationType
+}
+
+model Offer {
+  id          String    @id @default(cuid())
+  firmId      String
+  firm        PropFirm  @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  discount    Float?
+  couponCode  String?
+  affiliateUrl String?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  clicks      Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Review {
+  id         String       @id @default(cuid())
+  firmId     String
+  firm       PropFirm     @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  rating     Float
+  title      String?
+  body       String
+  proofImage String?
+  status     ReviewStatus @default(PENDING)
+  isVerified Boolean      @default(false)
+  helpful    Int          @default(0)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model FAQ {
+  id       String   @id @default(cuid())
+  firmId   String
+  firm     PropFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  question String
+  answer   String
+  order    Int      @default(0)
+}
+
+model TradingRule {
+  id       String   @id @default(cuid())
+  firmId   String
+  firm     PropFirm @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  category String
+  rule     String
+  allowed  Boolean  @default(true)
+}
+
+model Click {
+  id        String    @id @default(cuid())
+  firmId    String
+  firm      PropFirm  @relation(fields: [firmId], references: [id])
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id])
+  source    String?
+  referrer  String?
+  device    String?
+  country   String?
+  ip        String?
+  createdAt DateTime  @default(now())
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  firmId    String?
+  firm      PropFirm? @relation(fields: [firmId], references: [id])
+  event     String
+  page      String?
+  device    String?
+  country   String?
+  referrer  String?
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model BlogPost {
+  id              String     @id @default(cuid())
+  slug            String     @unique
+  title           String
+  excerpt         String?
+  content         String
+  featuredImage   String?
+  authorId        String
+  isPublished     Boolean    @default(false)
+  metaTitle       String?
+  metaDescription String?
+  publishedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  categories      BlogPostCategory[]
+  tags            BlogPostTag[]
+}
+
+model Category {
+  id        String             @id @default(cuid())
+  slug      String             @unique
+  name      String
+  posts     BlogPostCategory[]
+}
+
+model Tag {
+  id    String         @id @default(cuid())
+  slug  String         @unique
+  name  String
+  posts BlogPostTag[]
+}
+
+model BlogPostCategory {
+  postId     String
+  categoryId String
+  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id])
+  @@id([postId, categoryId])
+}
+
+model BlogPostTag {
+  postId String
+  tagId  String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag      @relation(fields: [tagId], references: [id])
+  @@id([postId, tagId])
+}
+
+model Page {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  content         String
+  metaTitle       String?
+  metaDescription String?
+  isPublished     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Menu {
+  id        String     @id @default(cuid())
+  location  String     @unique
+  items     Json
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string")
+  updatedAt DateTime @updatedAt
+}
+
+model Newsletter {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
