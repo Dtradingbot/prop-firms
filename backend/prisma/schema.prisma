@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -45,8 +45,8 @@ model PropFirm {
   slug             String          @unique
   name             String
   logo             String?
-  description      String?
-  shortDescription String?
+  description      String?  @db.LongText
+  shortDescription String?  @db.Text
   websiteUrl       String
   affiliateUrl     String?
   rating           Float           @default(0)
@@ -75,7 +75,7 @@ model PropFirm {
   keywords         String?
   canonicalUrl     String?
   ogImage          String?
-  schemaMarkup     Json?
+  schemaMarkup     String?   @db.LongText
   ratingOverride   Float?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
@@ -163,7 +163,7 @@ model Review {
   user       User         @relation(fields: [userId], references: [id])
   rating     Float
   title      String?
-  body       String
+  body       String   @db.Text
   proofImage String?
   status     ReviewStatus @default(PENDING)
   isVerified Boolean      @default(false)
@@ -221,8 +221,8 @@ model BlogPost {
   id              String     @id @default(cuid())
   slug            String     @unique
   title           String
-  excerpt         String?
-  content         String
+  excerpt         String?  @db.Text
+  content         String   @db.LongText
   featuredImage   String?
   authorId        String
   isPublished     Boolean    @default(false)
@@ -269,7 +269,7 @@ model Page {
   id              String   @id @default(cuid())
   slug            String   @unique
   title           String
-  content         String
+  content         String   @db.LongText
   metaTitle       String?
   metaDescription String?
   isPublished     Boolean  @default(true)
@@ -280,7 +280,7 @@ model Page {
 model Menu {
   id        String     @id @default(cuid())
   location  String     @unique
-  items     Json
+  items     String   @db.LongText
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 }
@@ -288,7 +288,7 @@ model Menu {
 model Setting {
   id        String   @id @default(cuid())
   key       String   @unique
-  value     String
+  value     String   @db.Text
   type      String   @default("string")
   updatedAt DateTime @updatedAt
 }

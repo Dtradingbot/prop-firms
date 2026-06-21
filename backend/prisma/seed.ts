@@ -101,7 +101,7 @@ async function main() {
     update: {},
     create: {
       location: 'header',
-      items: [
+      items: JSON.stringify([
         { label: 'Prop Firms', href: '/firms' },
         { label: 'Brokers', href: '/brokers' },
         { label: 'Compare', href: '/compare' },
@@ -109,7 +109,7 @@ async function main() {
         { label: 'Top Rated', href: '/top-rated' },
         { label: 'Trending', href: '/trending' },
         { label: 'Blog', href: '/blog' },
-      ],
+      ]),
     },
   });
 

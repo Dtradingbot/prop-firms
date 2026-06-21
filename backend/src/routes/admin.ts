@@ -240,10 +240,11 @@ adminRouter.get('/menus', async (req, res, next) => {
 
 adminRouter.put('/menus/:location', async (req, res, next) => {
   try {
+    const itemsStr = typeof req.body.items === 'string' ? req.body.items : JSON.stringify(req.body.items);
     const menu = await prisma.menu.upsert({
       where: { location: req.params.location },
-      update: { items: req.body.items },
-      create: { location: req.params.location, items: req.body.items },
+      update: { items: itemsStr },
+      create: { location: req.params.location, items: itemsStr },
     });
     res.json({ success: true, data: menu });
   } catch (e) { next(e); }
