@@ -1,0 +1,44 @@
+name: Deploy to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          script: |
+            cd /var/www/propfirmhub
+
+            echo ">>> Pulling latest code..."
+            git pull origin master
+
+            echo ">>> Installing backend dependencies..."
+            cd backend
+            npm install --legacy-peer-deps --production
+            npx prisma migrate deploy
+            npx prisma generate
+            npm run build
+
+            echo ">>> Installing frontend dependencies..."
+            cd ../frontend
+            npm install --legacy-peer-deps
+            npm run build
+
+            echo ">>> Restarting services..."
+            pm2 restart propfirmhub-api
+            pm2 restart propfirmhub-web
+
+            echo ">>> Deploy complete!"
